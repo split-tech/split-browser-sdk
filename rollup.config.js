@@ -3,6 +3,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 import pkg from './package.json';
 
 const extensions = ['.js', '.jsx', '.ts', '.tsx'];
@@ -11,10 +12,9 @@ const plugins = [
   json(),
   nodeResolve({ extensions }),
   commonjs(),
-  babel({
-    extensions,
-  }),
-  terser(),
+  typescript(),
+  // TODO: 개발 완료 후 주석 제거
+  // terser(),
 ];
 
 export default [
