@@ -1,26 +1,31 @@
 import { SPLIT_SERVER_URL } from '../constants';
-import { GraphQLClient } from 'graphql-request';
-import { findProductByApiKey, FindProductByApiKeyResponse } from './query';
+import { findProductByApiKey } from './query';
 
 export class SplitGqlClient {
-  private gqlClient;
+  private apiKey: string;
 
   constructor(apiKey: string) {
-    this.gqlClient = new GraphQLClient(SPLIT_SERVER_URL, {
-      headers: { apiKey: apiKey },
-    });
+    this.apiKey = apiKey;
   }
 
   async checkApiKeyValid() {
     try {
-      const data = await this.gqlClient.request<FindProductByApiKeyResponse>(
-        findProductByApiKey
-      );
+      const response = await fetch(SPLIT_SERVER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apiKey: this.apiKey,
+        },
+        body: JSON.stringify({
+          query: findProductByApiKey,
+        }),
+      });
+      const { data } = await response.json();
       if (!data.findProductByApiKey) {
         return false;
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return false;
     }
 

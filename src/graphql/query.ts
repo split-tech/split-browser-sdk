@@ -12,14 +12,3 @@ export const findProductByApiKey = gql`
     }
   }
 `;
-
-export interface FindProductByApiKeyResponse {
-  findProductByApiKey: {
-    id: string;
-    name: string;
-    webLink: string;
-    twitterLink: string;
-    description: string;
-    apiKey: string;
-  };
-}
