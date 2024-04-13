@@ -1,6 +1,6 @@
-import { gql } from 'graphql-request';
+import { gql } from "graphql-request";
 
-export const findProductByApiKey = gql`
+export const findProductByApiKeyQuery = gql`
   query FindProductByApiKey {
     findProductByApiKey {
       id
@@ -9,6 +9,25 @@ export const findProductByApiKey = gql`
       twitterLink
       description
       apiKey
+    }
+  }
+`;
+
+export const addReferralQuery = gql`
+  mutation AddReferral($input: ReferralInput!) {
+    addReferral(input: $input) {
+      id
+      eventId
+      userReferrals {
+        id
+        referralId
+        userAddress
+        userReferralType
+        updated
+        claimed
+        createdAt
+        updatedAt
+      }
     }
   }
 `;

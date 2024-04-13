@@ -1,7 +1,10 @@
-import { SplitGqlClient } from './graphql/client';
+import { ErrorMessage } from "./constants";
+import { SplitGqlClient } from "./graphql/client";
 
 export interface BrowserConfig {
   apiKey: string;
+  referrerAddress?: string;
+  refereeAddress?: string;
 }
 
 export class SplitBrowser {
@@ -26,6 +29,17 @@ export class SplitBrowser {
     const isValidApiKey = await this.gqlClient.checkApiKeyValid();
 
     this.initializing = false;
-    if (!isValidApiKey) throw Error('SplitError: Invalid API Key 🥲');
+    if (!isValidApiKey) throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+  }
+
+  async addReferral(eventId: string) {
+    const { apiKey, referrerAddress, refereeAddress } = this.config;
+    if (!apiKey) {
+      throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+    }
+    if (!referrerAddress || !refereeAddress) {
+      throw Error(ErrorMessage.MSG_INVALID_ADDRESSES);
+    }
+    await this.gqlClient.addReferral(eventId, referrerAddress, refereeAddress);
   }
 }
