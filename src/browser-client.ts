@@ -21,7 +21,7 @@ export class SplitBrowser {
   private gqlClient: SplitGqlClient;
 
   private getReferralCode() {
-    if (window) {
+    if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(this.browserInfo.config?.referralParam ?? DEFAULT_REFERRAL_PARAM);
     } else {

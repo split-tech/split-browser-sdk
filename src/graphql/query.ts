@@ -5,10 +5,6 @@ export const findProductByApiKeyQuery = gql`
     findProductByApiKey {
       id
       name
-      webLink
-      twitterLink
-      description
-      apiKey
     }
   }
 `;
