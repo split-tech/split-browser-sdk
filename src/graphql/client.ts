@@ -1,6 +1,6 @@
 import { ErrorMessage, SPLIT_SERVER_URL } from "../constants";
-import { ReferralInput } from "./input-type";
-import { findProductByApiKeyQuery, addReferralQuery } from "./query";
+import { ReferralInput, Status } from "./types";
+import { findProductByApiKeyQuery, addReferralQuery, findUserByReferralCode } from "./query";
 
 export class SplitGqlClient {
   private apiKey: string;
@@ -30,17 +30,28 @@ export class SplitGqlClient {
     }
   }
 
-  async checkApiKeyValid() {
-    // TODO: API Key를 확인하여 DB 값을 업데이트하는 mutation으로 변경
+  async checkApiKeyValid(): Promise<boolean> {
     const data = await this.sendGqlRequest(findProductByApiKeyQuery, {});
     if (!data.findProductByApiKey) {
       return false;
     }
-
     return true;
   }
 
-  async addReferral(eventId: string, referrerAddress: string, refereeAddress: string) {
+  async getUserByReferralCode(referralCode: string): Promise<string | null> {
+    try {
+      const data = await this.sendGqlRequest(findUserByReferralCode, { input: { referralCode } });
+      if (!data.findUserByReferralCode || data.findUserByReferralCode.status !== Status.ACTIVE) {
+        throw new Error(ErrorMessage.MSG_INVALID_REFERRAL_CODE);
+      }
+      return data.findUserByReferralCode.address;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  async addReferral(eventId: string, referrerAddress: string, refereeAddress: string): Promise<void> {
     const referralInput: ReferralInput = {
       eventId,
       referralProviderInput: {

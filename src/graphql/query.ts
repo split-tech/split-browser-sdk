@@ -31,3 +31,13 @@ export const addReferralQuery = gql`
     }
   }
 `;
+
+export const findUserByReferralCode = gql`
+  query FindUserByReferralCode($input: UserInput!) {
+    findUserByReferralCode(input: $input) {
+      id
+      address
+      status
+    }
+  }
+`;

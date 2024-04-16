@@ -3,6 +3,12 @@ export enum UserReferralType {
   REFERRAL_PROVIDER = "REFERRAL_PROVIDER",
 }
 
+export enum Status {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  DELETE = "DELETE",
+}
+
 export interface ReferralInput {
   eventId: string;
   referralProviderInput: {

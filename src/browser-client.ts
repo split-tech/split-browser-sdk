@@ -1,45 +1,70 @@
-import { ErrorMessage } from "./constants";
+import { DEFAULT_REFERRAL_PARAM, ErrorMessage } from "./constants";
 import { SplitGqlClient } from "./graphql/client";
+import { URLSearchParams as ServerURLSearchParams } from "url";
 
-export interface BrowserConfig {
+export interface BrowserInfo {
   apiKey: string;
-  referrerAddress?: string;
-  refereeAddress?: string;
+  config?: SplitConfig;
+  referrerAddress?: string | null;
+  refereeAddress?: string | null;
+}
+
+export interface SplitConfig {
+  referralParam?: string;
 }
 
 export class SplitBrowser {
   private initializing = false;
   // @ts-ignore
-  private config: BrowserConfig;
+  private browserInfo: BrowserInfo;
   // @ts-ignore
   private gqlClient: SplitGqlClient;
 
-  async init(apiKey: string) {
-    /* Step 1. Block concurrent initialization */
-    if (this.initializing) {
-      return;
+  private getReferralCode() {
+    if (window) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(this.browserInfo.config?.referralParam ?? DEFAULT_REFERRAL_PARAM);
+    } else {
+      const urlParams = new ServerURLSearchParams();
+      return urlParams.get(this.browserInfo.config?.referralParam ?? DEFAULT_REFERRAL_PARAM);
     }
-    this.initializing = true;
+  }
 
-    /* Step 2. Setup config and gqlClient */
-    this.config = { apiKey };
-    this.gqlClient = new SplitGqlClient(apiKey);
+  async init(apiKey: string, config?: SplitConfig) {
+    try {
+      if (this.initializing) {
+        return;
+      }
+      this.initializing = true;
+      this.browserInfo = { apiKey, config };
 
-    /* Step 3. Check API Key is valid */
-    const isValidApiKey = await this.gqlClient.checkApiKeyValid();
+      const referralCode = this.getReferralCode();
+      if (referralCode) {
+        this.browserInfo.referrerAddress = await this.gqlClient.getUserByReferralCode(referralCode);
+      }
 
-    this.initializing = false;
-    if (!isValidApiKey) throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+      this.gqlClient = new SplitGqlClient(apiKey);
+      const isValidApiKey = await this.gqlClient.checkApiKeyValid();
+      if (!isValidApiKey) throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.initializing = false;
+    }
   }
 
   async addReferral(eventId: string) {
-    const { apiKey, referrerAddress, refereeAddress } = this.config;
-    if (!apiKey) {
-      throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+    try {
+      const { apiKey, referrerAddress, refereeAddress } = this.browserInfo;
+      if (!apiKey) {
+        throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+      }
+      if (!referrerAddress || !refereeAddress) {
+        return;
+      }
+      await this.gqlClient.addReferral(eventId, referrerAddress, refereeAddress);
+    } catch (error) {
+      console.error(error);
     }
-    if (!referrerAddress || !refereeAddress) {
-      throw Error(ErrorMessage.MSG_INVALID_ADDRESSES);
-    }
-    await this.gqlClient.addReferral(eventId, referrerAddress, refereeAddress);
   }
 }
