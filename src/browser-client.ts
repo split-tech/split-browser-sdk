@@ -6,7 +6,6 @@ export interface BrowserInfo {
   apiKey: string;
   config?: SplitConfig;
   referrerAddress?: string | null;
-  refereeAddress?: string | null;
 }
 
 export interface SplitConfig {
@@ -36,16 +35,19 @@ export class SplitBrowser {
         return;
       }
       this.initializing = true;
-      this.browserInfo = { apiKey, config };
-
-      const referralCode = this.getReferralCode();
-      if (referralCode) {
-        this.browserInfo.referrerAddress = await this.gqlClient.getUserByReferralCode(referralCode);
-      }
-
       this.gqlClient = new SplitGqlClient(apiKey);
+
       const isValidApiKey = await this.gqlClient.checkApiKeyValid();
       if (!isValidApiKey) throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+
+      this.browserInfo = { apiKey, config };
+      const referralCode = this.getReferralCode();
+
+      if (referralCode) {
+        // 추천 코드로 추천인 주소를 가져옴.
+        const referrerAddress = await this.gqlClient.getUserByReferralCode(referralCode);
+        this.browserInfo.referrerAddress = referrerAddress;
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -53,16 +55,16 @@ export class SplitBrowser {
     }
   }
 
-  async addReferral(eventId: string) {
+  async addReferral(refereeAddress: string) {
     try {
-      const { apiKey, referrerAddress, refereeAddress } = this.browserInfo;
+      const { apiKey, referrerAddress } = this.browserInfo;
       if (!apiKey) {
         throw Error(ErrorMessage.MSG_INVALID_API_KEY);
       }
       if (!referrerAddress || !refereeAddress) {
         return;
       }
-      await this.gqlClient.addReferral(eventId, referrerAddress, refereeAddress);
+      await this.gqlClient.addReferral(referrerAddress, refereeAddress);
     } catch (error) {
       console.error(error);
     }

@@ -1,6 +1,6 @@
 export enum UserReferralType {
-  USER = "USER",
-  REFERRAL_PROVIDER = "REFERRAL_PROVIDER",
+  REFERRER = "REFERRER",
+  REFEREE = "REFEREE",
 }
 
 export enum Status {
@@ -10,12 +10,11 @@ export enum Status {
 }
 
 export interface ReferralInput {
-  eventId: string;
-  referralProviderInput: {
+  referrerInput: {
     userAddress: string;
     userReferralType: keyof typeof UserReferralType;
   };
-  userInput: {
+  refereeInput: {
     userAddress: string;
     userReferralType: keyof typeof UserReferralType;
   };

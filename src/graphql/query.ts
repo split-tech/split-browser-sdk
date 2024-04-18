@@ -13,13 +13,12 @@ export const addReferralQuery = gql`
   mutation AddReferral($input: ReferralInput!) {
     addReferral(input: $input) {
       id
-      eventId
+      productId
       userReferrals {
         id
         referralId
         userAddress
         userReferralType
-        updated
         claimed
         createdAt
         updatedAt

@@ -1,6 +1,6 @@
 {
   "name": "@split-tech/browser-sdk-test",
-  "version": "0.2.9",
+  "version": "0.2.13",
   "description": "Browser SDK for integrating Split",
   "license": "MIT",
   "exports": {
@@ -35,6 +35,8 @@
   },
   "dependencies": {
     "encoding": "^0.1.13",
+    "graphql": "^16.8.1",
+    "graphql-request": "^6.1.0",
     "lodash": "4.17.21"
   },
   "devDependencies": {
