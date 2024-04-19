@@ -1,6 +1,6 @@
 {
   "name": "@split-tech/browser-sdk-test",
-  "version": "0.2.13",
+  "version": "0.3.0",
   "description": "Browser SDK for integrating Split",
   "license": "MIT",
   "exports": {
