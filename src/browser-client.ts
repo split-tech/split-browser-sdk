@@ -1,34 +1,72 @@
-import { apiRequest } from './api-request';
+import { DEFAULT_REFERRAL_PARAM, ErrorMessage } from "./constants";
+import { SplitGqlClient } from "./graphql/client";
+import { URLSearchParams as ServerURLSearchParams } from "url";
 
-export interface BrowserConfig {
-  core: {
-    apiKey: string;
-  };
+export interface BrowserInfo {
+  apiKey: string;
+  config?: SplitConfig;
+  referrerAddress?: string | null;
+}
+
+export interface SplitConfig {
+  referralParam?: string;
 }
 
 export class SplitBrowser {
   private initializing = false;
   // @ts-ignore
-  private config: BrowserConfig;
+  private browserInfo: BrowserInfo;
+  // @ts-ignore
+  private gqlClient: SplitGqlClient;
 
-  async init(apiKey: string) {
-    /* Step 1. Block concurrent initialization */
-    if (this.initializing) {
-      return;
+  private getReferralCode() {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(this.browserInfo.config?.referralParam ?? DEFAULT_REFERRAL_PARAM);
+    } else {
+      const urlParams = new ServerURLSearchParams();
+      return urlParams.get(this.browserInfo.config?.referralParam ?? DEFAULT_REFERRAL_PARAM);
     }
-    this.initializing = true;
-
-    /* Step 2. Check the apiKey is valid */
-    this.config = { core: { apiKey } };
-    const valid = await apiRequest.checkApiKeyValid(this.config.core.apiKey);
-
-    this.initializing = false;
-    if (!valid) throw Error('Invalid API Key');
   }
 
-  sendEvent(eventId: string) {
-    // TODO: need to implement this method
-    console.log('Not prepared! 😝');
-    console.log('EventId: ', eventId);
+  async init(apiKey: string, config?: SplitConfig) {
+    try {
+      if (this.initializing) {
+        return;
+      }
+      this.initializing = true;
+      this.gqlClient = new SplitGqlClient(apiKey);
+
+      const isValidApiKey = await this.gqlClient.checkApiKeyValid();
+      if (!isValidApiKey) throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+
+      this.browserInfo = { apiKey, config };
+      const referralCode = this.getReferralCode();
+
+      if (referralCode) {
+        // 추천 코드로 추천인 주소를 가져옴.
+        const referrerAddress = await this.gqlClient.getUserByReferralCode(referralCode);
+        this.browserInfo.referrerAddress = referrerAddress;
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.initializing = false;
+    }
+  }
+
+  async addReferral(refereeAddress: string) {
+    try {
+      const { apiKey, referrerAddress } = this.browserInfo;
+      if (!apiKey) {
+        throw Error(ErrorMessage.MSG_INVALID_API_KEY);
+      }
+      if (!referrerAddress || !refereeAddress) {
+        return;
+      }
+      await this.gqlClient.addReferral(referrerAddress, refereeAddress);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
