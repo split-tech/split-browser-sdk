@@ -1,6 +1,6 @@
 {
   "name": "@split-tech/browser-sdk",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Browser SDK for integrating Split",
   "license": "MIT",
   "exports": {
@@ -10,6 +10,7 @@
       "require": "./dist/index.js"
     }
   },
+  "type": "commonjs",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
   "browser": "./dist/index.umd.js",
@@ -35,13 +36,17 @@
   },
   "dependencies": {
     "encoding": "^0.1.13",
-    "graphql": "^16.8.1",
+    "ethers": "5.6.4",
     "graphql-request": "^6.1.0",
-    "lodash": "4.17.21"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "2.x",
+    "wagmi": "^2.5.19"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
     "@babel/preset-env": "^7.18.2",
+    "@babel/preset-react": "^7.24.1",
     "@babel/preset-typescript": "^7.17.12",
     "@commitlint/cli": "17.0.3",
     "@commitlint/config-conventional": "17.0.3",
@@ -50,7 +55,8 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@types/lodash": "4.14.182",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
     "husky": "^8.0.0",
     "lint-staged": "^12.4.2",
     "prettier": "^2.6.2",
@@ -59,7 +65,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "semantic-release": "19.0.3",
     "tslib": "^2.6.2",
-    "typescript": "^4.7.2"
+    "typescript": "~5.3.2"
   },
   "publishConfig": {
     "access": "public"
