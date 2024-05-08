@@ -2,9 +2,8 @@ import React, { createContext, useContext, useEffect, PropsWithChildren, useRef 
 import client from "./browser-client-factory";
 export { createInstance } from "./browser-client-factory";
 export const { init, addReferral } = client;
-// import { WagmiProvider, useAccount } from "wagmi";
 import { SplitConfig } from "./browser-client";
-// import { wagmiConfig } from "./config/wagmi.config";
+import { ErrorMessage } from "./constants";
 
 type SplitBrowserContextProps = typeof client;
 
@@ -18,7 +17,6 @@ export const SplitBrowserProvider = ({
   apiKey: string;
   config?: SplitConfig;
 }>) => {
-  //   const { address } = useAccount();
   const browserClient = useRef(client)?.current;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -33,9 +31,19 @@ export const SplitBrowserProvider = ({
   useEffect(() => {
     const handleAddReferral = async () => {
       if (!browserClient) return;
-      // if (browserClient && address) {
-      await browserClient?.addReferral("");
-      // }
+      if ((window as any).ethereum) {
+        try {
+          // 사용자의 이더리움 계정에 접근 요청
+          const accounts = await (window as any).ethereum.request({ method: "eth_accounts" });
+          if (accounts.length === 0) {
+            return;
+          }
+          await browserClient.addReferral(accounts[0]);
+        } catch (error) {
+          // TODO: Side effect 확인
+          console.error(ErrorMessage.MSG_ADD_REFERRAL_DATA_FAILED);
+        }
+      }
     };
 
     // Set the interval with the provided value or default to 10000 milliseconds
