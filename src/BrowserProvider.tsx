@@ -46,7 +46,6 @@ export const SplitBrowserProvider = ({
       }
     };
 
-    // Set the interval with the provided value or default to 10000 milliseconds
     const interval = config?.interval || 10000;
     intervalRef.current = setInterval(handleAddReferral, interval);
 
