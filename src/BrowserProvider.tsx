@@ -9,9 +9,13 @@ export interface SplitProviderConfig extends SplitConfig {
   refetchInterval?: number;
 }
 
-type SplitBrowserContextProps = typeof client;
+export type SplitBrowserContextProps = typeof client;
 
 const SplitBrowserContext = createContext<SplitBrowserContextProps>(undefined as unknown as SplitBrowserContextProps);
+
+export interface SplitProviderConfig extends SplitConfig {
+  refetchInterval?: number;
+}
 
 export const SplitBrowserProvider = ({
   children,
