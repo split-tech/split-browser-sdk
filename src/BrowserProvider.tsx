@@ -5,9 +5,13 @@ export const { init, addReferral } = client;
 import { SplitConfig } from "./browser-client";
 import { ErrorMessage } from "./constants";
 
-type SplitBrowserContextProps = typeof client;
+export type SplitBrowserContextProps = typeof client;
 
 const SplitBrowserContext = createContext<SplitBrowserContextProps>(undefined as unknown as SplitBrowserContextProps);
+
+export interface SplitProviderConfig extends SplitConfig {
+  refetchInterval?: number;
+}
 
 export const SplitBrowserProvider = ({
   children,
@@ -15,7 +19,7 @@ export const SplitBrowserProvider = ({
   config,
 }: PropsWithChildren<{
   apiKey: string;
-  config?: SplitConfig;
+  config?: SplitProviderConfig;
 }>) => {
   const browserClient = useRef(client)?.current;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,15 +51,15 @@ export const SplitBrowserProvider = ({
     };
 
     // Set the interval with the provided value or default to 10000 milliseconds
-    const interval = config?.interval || 10000;
-    intervalRef.current = setInterval(handleAddReferral, interval);
+    const refetchInterval = config?.refetchInterval || 10000;
+    intervalRef.current = setInterval(handleAddReferral, refetchInterval);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [browserClient, config?.interval]);
+  }, [browserClient, config?.refetchInterval]);
 
   return <SplitBrowserContext.Provider value={browserClient}>{children}</SplitBrowserContext.Provider>;
 };

@@ -10,7 +10,6 @@ export interface BrowserInfo {
 
 export interface SplitConfig {
   referralParam?: string;
-  interval?: number;
 }
 
 export class SplitBrowser {
