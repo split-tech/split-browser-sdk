@@ -1,4 +1,5 @@
-export const SPLIT_SERVER_URL = "https://server.split.marketing";
+// export const SPLIT_SERVER_URL = "http://localhost:4000/graphql";
+export const SPLIT_SERVER_URL = "https://server.split.marketing/graphql";
 
 export const DEFAULT_REFERRAL_PARAM = "join";
 

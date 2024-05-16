@@ -14,7 +14,7 @@ const plugins = [
   commonjs(),
   typescript(),
   // TODO: 개발 완료 후 주석 제거
-  terser(),
+  // terser(),
 ];
 
 export default [
