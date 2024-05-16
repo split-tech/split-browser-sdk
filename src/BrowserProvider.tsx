@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, PropsWithChildren, useRef } from "react";
+import React, { createContext, useContext, useEffect, PropsWithChildren, useRef, useState } from "react";
 import client from "./browser-client-factory";
 export { createInstance } from "./browser-client-factory";
 export const { init, addReferral } = client;
@@ -13,10 +13,6 @@ export type SplitBrowserContextProps = typeof client;
 
 const SplitBrowserContext = createContext<SplitBrowserContextProps>(undefined as unknown as SplitBrowserContextProps);
 
-export interface SplitProviderConfig extends SplitConfig {
-  refetchInterval?: number;
-}
-
 export const SplitBrowserProvider = ({
   children,
   apiKey,
@@ -27,6 +23,9 @@ export const SplitBrowserProvider = ({
 }>) => {
   const browserClient = useRef(client)?.current;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [retryLimitReached, setRetryLimitReached] = useState(false);
 
   useEffect(() => {
     const initSplitBrowser = async () => {
@@ -39,17 +38,25 @@ export const SplitBrowserProvider = ({
   useEffect(() => {
     const handleAddReferral = async () => {
       if (!browserClient) return;
-      if ((window as any).ethereum) {
+      if ((window as any).ethereum && !retryLimitReached) {
         try {
-          // 사용자의 이더리움 계정에 접근 요청
           const accounts = await (window as any).ethereum.request({ method: "eth_accounts" });
           if (accounts.length === 0) {
             return;
           }
           await browserClient.addReferral(accounts[0]);
+          setRetryCount(0);
+          setRetryLimitReached(false);
         } catch (error) {
-          // TODO: Side effect 확인
           console.error(ErrorMessage.MSG_ADD_REFERRAL_DATA_FAILED);
+          setRetryCount((prev) => prev + 1);
+
+          // 최대 3 재시도
+          if (retryCount < 3) {
+            timeoutRef.current = setTimeout(handleAddReferral, 5000);
+          } else {
+            setRetryLimitReached(true);
+          }
         }
       }
     };
@@ -61,8 +68,11 @@ export const SplitBrowserProvider = ({
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
-  }, [browserClient, config?.refetchInterval]);
+  }, [config?.refetchInterval, retryCount]);
 
   return <SplitBrowserContext.Provider value={browserClient}>{children}</SplitBrowserContext.Provider>;
 };
