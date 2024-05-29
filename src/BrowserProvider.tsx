@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, PropsWithChildren, useRef, useState } from "react";
 import client from "./browser-client-factory";
+import { debounce } from "lodash";
 export { createInstance } from "./browser-client-factory";
 export const { init, addReferral } = client;
 import { SplitConfig } from "./browser-client";
@@ -27,13 +28,19 @@ export const SplitBrowserProvider = ({
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  useEffect(() => {
-    const initSplitBrowser = async () => {
+  const debouncedInit = useRef(
+    debounce(async (apiKey: string, config?: SplitProviderConfig) => {
       await browserClient.init(apiKey, config);
-    };
+    }, 500),
+  ).current;
 
-    initSplitBrowser();
-  }, [apiKey, config]);
+  useEffect(() => {
+    debouncedInit(apiKey, config);
+
+    return () => {
+      debouncedInit.cancel(); // 컴포넌트 언마운트 시 디바운스 취소
+    };
+  }, [apiKey, config, debouncedInit]);
 
   const handleAddReferral = async () => {
     if (!browserClient || isWalletConnected) return;
